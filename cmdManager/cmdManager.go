@@ -1,0 +1,5 @@
+package cmdmanager
+
+func ReadDataFromFile() {
+
+}

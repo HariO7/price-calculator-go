@@ -1,18 +1,17 @@
 package prices
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"strconv"
+
+	"example.com/price-calculator/conversion"
+	"example.com/price-calculator/filemanager"
 )
 
-var fileName string = "./resources/prices.txt"
-
 type TaxIncludedPriceJob struct {
-	TaxRate           float64
-	InputPrices       []float64
-	TaxIncludedPrices map[string]float64
+	TaxRate           float64                 `json:"tax_rate"`
+	InputPrices       []float64               `json:"input_prices"`
+	TaxIncludedPrices map[string]string       `json:"tax_included_prices"`
+	IOManger          filemanager.FileManager `json:"-"`
 }
 
 func (job *TaxIncludedPriceJob) Process() {
@@ -25,52 +24,33 @@ func (job *TaxIncludedPriceJob) Process() {
 		result[fmt.Sprintf("%.2f", price)] = fmt.Sprintf("%.2f", taxIncludedPrice)
 	}
 
-	fmt.Println("TaxRate->", result)
+	job.TaxIncludedPrices = result
+	job.IOManger.WriteJSON(job)
+
 }
 
-func NewTaxIncludedPrice(taxRate float64) *TaxIncludedPriceJob {
+func NewTaxIncludedPriceJob(taxRate float64, fm filemanager.FileManager) *TaxIncludedPriceJob {
 	return &TaxIncludedPriceJob{
 		TaxRate:     taxRate,
 		InputPrices: []float64{10, 20, 30},
+		IOManger:    fm,
 	}
 }
 
 func (job TaxIncludedPriceJob) LoadData() {
-	file, err := os.Open(fileName)
+
+	lines, err := job.IOManger.ReadDataFromFile()
 
 	if err != nil {
-		fmt.Println("File cannot be openned")
 		fmt.Println(err)
 		return
 	}
 
-	scanner := bufio.NewScanner(file)
-
-	var lines []string
-
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	err = scanner.Err()
+	prices, err := conversion.ConvertStringsTofloat(lines)
 
 	if err != nil {
-		fmt.Println("error occured while scanning")
 		fmt.Println(err)
-		file.Close()
 		return
-	}
-
-	prices := make([]float64, len(lines))
-
-	for lineIndex, line := range lines {
-		floatPrice, err := strconv.ParseFloat(line, 64)
-		if err != nil {
-			fmt.Println("conversion faild")
-			fmt.Println(err)
-			return
-		}
-		prices[lineIndex] = floatPrice
 	}
 
 	job.InputPrices = prices
