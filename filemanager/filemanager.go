@@ -13,6 +13,11 @@ type FileManager struct {
 	outputPath string
 }
 
+type IOManger interface {
+	ReadDataFromFile() ([]string, error)
+	WriteJSON(data any) error
+}
+
 func New(inputPath string, outputPath string) FileManager {
 	return FileManager{
 		inputPath:  inputPath,
