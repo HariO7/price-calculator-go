@@ -37,21 +37,21 @@ func NewTaxIncludedPriceJob(taxRate float64, iom filemanager.IOManger) *TaxInclu
 	}
 }
 
-func (job TaxIncludedPriceJob) LoadData() {
+func (job TaxIncludedPriceJob) LoadData() error {
 
 	lines, err := job.IOManger.ReadDataFromFile()
 
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
 	prices, err := conversion.ConvertStringsTofloat(lines)
 
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
 	job.InputPrices = prices
+
+	return nil
 }
